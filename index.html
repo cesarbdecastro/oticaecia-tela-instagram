@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -15,12 +15,28 @@
   <div class="container">
     <div class="left">
       <video id="video" autoplay muted loop playsinline>
-        <source src="{{VIDEO_URL}}" type="video/mp4">
+        <source id="videoSource" src="" type="video/mp4">
       </video>
     </div>
     <div class="right">
-      <p id="caption">{{CAPTION_TEXT}}</p>
+      <p id="caption">Carregando...</p>
     </div>
   </div>
+
+  <script>
+    async function loadContent() {
+      try {
+        const response = await fetch('data.json?t=' + Date.now());
+        const data = await response.json();
+        document.getElementById('videoSource').src = data.video;
+        document.getElementById('video').load();
+        document.getElementById('caption').innerText = data.caption;
+      } catch (e) {
+        console.error('Erro ao carregar data.json', e);
+      }
+    }
+    loadContent();
+    setInterval(loadContent, 30000);
+  </script>
 </body>
 </html>
