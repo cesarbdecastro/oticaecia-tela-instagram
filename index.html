@@ -5,14 +5,14 @@
 <style>
   body { margin:0; padding:0; background:#000; overflow:hidden; }
   .container { display:flex; width:100vw; height:100vh; }
-  .left { width:50%; height:100%; background:#111; color:#fff; display:flex; align-items:center; justify-content:center; padding:40px; box-sizing:border-box; }
-  .left p { font-size:3vw; font-family:Arial, sans-serif; line-height:1.4; }
-  .right { width:50%; height:100%; display:flex; align-items:center; justify-content:center; background:#000; }
+  .left { width:50%; height:100%; display:flex; align-items:center; justify-content:center; background:#000; }
+  .right { width:50%; height:100%; background:#111; color:#fff; display:flex; align-items:center; justify-content:center; padding:40px; box-sizing:border-box; }
+  .right p { font-size:3vw; font-family:Arial, sans-serif; line-height:1.4; }
   video { max-width:100%; max-height:100%; }
 </style>
 </head>
 <body>
-   <div class="container">
+  <div class="container">
     <div class="left">
       <video id="video" autoplay muted loop playsinline>
         <source src="" type="video/mp4">
@@ -22,3 +22,5 @@
       <p id="caption">Legenda do post aparece aqui</p>
     </div>
   </div>
+</body>
+</html>
