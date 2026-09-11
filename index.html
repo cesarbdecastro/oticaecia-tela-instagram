@@ -34,8 +34,7 @@
         const videoEl = document.getElementById('video');
         const imageEl = document.getElementById('image');
         const url = data.video || '';
-
-        const isVideo = /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url);
+        const isVideo = (data.type === 'VIDEO');
 
         if (isVideo) {
           document.getElementById('videoSource').src = url;
