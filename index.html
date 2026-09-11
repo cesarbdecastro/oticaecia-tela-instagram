@@ -48,3 +48,14 @@
           videoEl.style.display = 'none';
           videoEl.pause();
         }
+
+        document.getElementById('caption').innerText = data.caption;
+      } catch (e) {
+        console.error('Erro ao carregar data.json', e);
+      }
+    }
+    loadContent();
+    setInterval(loadContent, 30000);
+  </script>
+</body>
+</html>
