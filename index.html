@@ -2,14 +2,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body { margin:0; padding:0; background:#000; overflow:hidden; }
-  .container { display:flex; width:100vw; height:100vh; }
-  .left { width:50%; height:100%; display:flex; align-items:center; justify-content:center; background:#000; }
-  .right { width:50%; height:100%; background:#111; color:#fff; display:flex; align-items:center; justify-content:center; padding:5vh 4vw; box-sizing:border-box; }
-  .right p { margin:0; font-size:2vw; font-family:Arial, sans-serif; line-height:1.4; white-space:pre-wrap; max-height:100%; }
-  #mediaContainer { width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+  html, body { margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden; }
+  .container { display:-webkit-box; display:-webkit-flex; display:flex; width:100%; height:100%; }
+  .left { width:50%; height:100%; display:-webkit-box; display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; -webkit-justify-content:center; justify-content:center; background:#000; }
+  .right { width:50%; height:100%; background:#111; color:#fff; display:-webkit-box; display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; -webkit-justify-content:center; justify-content:center; padding:5vh 4vw; box-sizing:border-box; }
+  .right p { margin:0; font-size:2vw; font-family:Arial, sans-serif; line-height:1.4; white-space:pre-wrap; }
+  #mediaContainer { width:100%; height:100%; display:-webkit-box; display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; -webkit-justify-content:center; justify-content:center; }
   #mediaContainer video, #mediaContainer img { max-width:100%; max-height:100%; }
+  #erro { position:fixed; bottom:0; left:0; right:0; color:#f66; font:14px Arial, sans-serif; padding:6px; background:rgba(0,0,0,0.7); display:none; }
 </style>
 </head>
 <body>
@@ -21,18 +23,28 @@
       <p id="caption">Carregando...</p>
     </div>
   </div>
+  <div id="erro"></div>
 
   <script>
     var ultimaMidia = '';
     var ultimaLegenda = '';
 
-    // Diminui a fonte ate a legenda caber na coluna da direita
+    function mostrarErro(msg) {
+      var e = document.getElementById('erro');
+      e.style.display = 'block';
+      e.innerHTML = 'Erro: ' + msg;
+    }
+
+    window.onerror = function (msg, arquivo, linha) {
+      mostrarErro(msg + ' (linha ' + linha + ')');
+    };
+
     function ajustarLegenda() {
       var p = document.getElementById('caption');
       var box = document.getElementById('right');
       var limite = box.clientHeight * 0.9;
-      var tamanho = window.innerWidth * 0.022; // tamanho maximo
-      var minimo = window.innerWidth * 0.009;  // tamanho minimo
+      var tamanho = window.innerWidth * 0.022;
+      var minimo = window.innerWidth * 0.009;
       p.style.fontSize = tamanho + 'px';
       while (p.scrollHeight > limite && tamanho > minimo) {
         tamanho = tamanho * 0.95;
@@ -40,32 +52,49 @@
       }
     }
 
-    async function loadContent() {
-      try {
-        var response = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' });
-        var data = await response.json();
+    function aplicarDados(data) {
+      document.getElementById('erro').style.display = 'none';
 
-        if (data.video !== ultimaMidia) {
-          ultimaMidia = data.video;
-          var container = document.getElementById('mediaContainer');
-          if (data.type === 'VIDEO') {
-            container.innerHTML = '<video autoplay muted loop playsinline><source src="' + data.video + '" type="video/mp4"></video>';
-          } else {
-            container.innerHTML = '<img referrerpolicy="no-referrer" src="' + data.video + '">';
-          }
+      if (data.video !== ultimaMidia) {
+        ultimaMidia = data.video;
+        var container = document.getElementById('mediaContainer');
+        if (data.type === 'VIDEO') {
+          container.innerHTML = '<video autoplay muted loop playsinline webkit-playsinline src="' + data.video + '"></video>';
+          var v = container.getElementsByTagName('video')[0];
+          v.muted = true;
+          try { var p = v.play(); if (p && p['catch']) { p['catch'](function () {}); } } catch (e) {}
+        } else {
+          container.innerHTML = '<img src="' + data.video + '">';
         }
+      }
 
-        if (data.caption !== ultimaLegenda) {
-          ultimaLegenda = data.caption;
-          document.getElementById('caption').innerText = data.caption;
-          ajustarLegenda();
-        }
-      } catch (e) {
-        console.error('Erro ao carregar data.json', e);
+      if (data.caption !== ultimaLegenda) {
+        ultimaLegenda = data.caption;
+        var cap = document.getElementById('caption');
+        if (cap.textContent !== undefined) { cap.textContent = data.caption; } else { cap.innerText = data.caption; }
+        ajustarLegenda();
       }
     }
 
-    window.addEventListener('resize', ajustarLegenda);
+    function loadContent() {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'data.json?t=' + new Date().getTime(), true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) { return; }
+        if (xhr.status === 200) {
+          try {
+            aplicarDados(JSON.parse(xhr.responseText));
+          } catch (e) {
+            mostrarErro('dados invalidos - ' + e.message);
+          }
+        } else {
+          mostrarErro('nao consegui ler data.json (status ' + xhr.status + ')');
+        }
+      };
+      xhr.send();
+    }
+
+    window.onresize = ajustarLegenda;
     loadContent();
     setInterval(loadContent, 30000);
   </script>
