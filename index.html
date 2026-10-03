@@ -23,14 +23,31 @@
   </div>
 
   <script>
+    var ultimaMidia = '';
+
     async function loadContent() {
       try {
-        const response = await fetch('data.json?t=' + Date.now());
-        const data = await response.json();
+        var response = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' });
+        var data = await response.json();
 
-        const container = document.getElementById('mediaContainer');
-        const isVideo = data.type === 'VIDEO';
+        if (data.video !== ultimaMidia) {
+          ultimaMidia = data.video;
+          var container = document.getElementById('mediaContainer');
+          if (data.type === 'VIDEO') {
+            container.innerHTML = '<video autoplay muted loop playsinline><source src="' + data.video + '" type="video/mp4"></video>';
+          } else {
+            container.innerHTML = '<img src="' + data.video + '">';
+          }
+        }
 
-        container.innerHTML = isVideo
-          ? '<video id="video" autoplay muted loop playsinline><source src="' + data.video + '" type="video/mp4"></video>'
-          :
+        document.getElementById('caption').innerText = data.caption;
+      } catch (e) {
+        console.error('Erro ao carregar data.json', e);
+      }
+    }
+
+    loadContent();
+    setInterval(loadContent, 30000);
+  </script>
+</body>
+</html>
